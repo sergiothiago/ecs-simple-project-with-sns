@@ -1,7 +1,9 @@
 package br.com.siecola.aws_project01.controller;
 
+import br.com.siecola.aws_project01.enums.EventType;
 import br.com.siecola.aws_project01.model.Product;
 import br.com.siecola.aws_project01.repository.ProductRepository;
+import br.com.siecola.aws_project01.service.ProductPublisher;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -14,6 +16,9 @@ import java.util.Optional;
 public class ProductController {
 
     private ProductRepository productRepository;
+
+    @Autowired
+    ProductPublisher productPublisher;
 
     @Autowired
     public ProductController(ProductRepository productRepository) {
@@ -40,6 +45,7 @@ public class ProductController {
             @RequestBody Product product) {
         Product productCreated = productRepository.save(product);
 
+        productPublisher.publishProductEvents(productCreated, EventType.PRODUCT_CREATED, "Jhon");
         return new ResponseEntity<Product>(productCreated,
                 HttpStatus.CREATED);
     }
@@ -52,6 +58,7 @@ public class ProductController {
 
             Product productUpdated = productRepository.save(product);
 
+            productPublisher.publishProductEvents(productUpdated, EventType.PRODUCT_UPDATED, "Jhon");
             return new ResponseEntity<Product>(productUpdated,
                     HttpStatus.OK);
         } else {
@@ -66,7 +73,7 @@ public class ProductController {
             Product product = optProduct.get();
 
             productRepository.delete(product);
-
+            productPublisher.publishProductEvents(product, EventType.PRODUCT_DELETED, "Jhon");
             return new ResponseEntity<Product>(product, HttpStatus.OK);
         } else {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
